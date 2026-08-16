@@ -1,0 +1,22 @@
+{
+  "verified": false,
+  "note": "⚠ 미검증 추정치 — blackdetect/freezedetect 파라미터는 ffmpeg 기본값을 참고해 조정한 값이고, loudness/clipping 하한선은 공식 기준으로 검증되지 않은 참고용 값임. 실사용 전 검증 권장.",
+  "blackdetect": {
+    "window_seconds": 1.0,
+    "d": 0.1,
+    "pic_th": 0.98,
+    "pix_th": 0.10,
+    "fail_black_ratio": 0.9
+  },
+  "freezedetect": {
+    "n": 0.001,
+    "d": 2.0,
+    "fail_duration": 5.0
+  },
+  "loudness": {
+    "min_integrated_lufs": -30.0
+  },
+  "clipping": {
+    "near_zero_peak_db": -0.3
+  }
+}

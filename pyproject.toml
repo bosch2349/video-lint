@@ -1,0 +1,21 @@
+[project]
+name = "video-lint"
+version = "0.1.0"
+description = "숏폼 영상(TikTok/Shorts/Reels) 게시 전 로컬 QA 체크 CLI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+video-lint = "video_lint.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["video_lint"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+video_lint = ["safe_zones.json", "thresholds.json"]

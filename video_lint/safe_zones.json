@@ -1,0 +1,10 @@
+{
+  "reference_resolution": { "width": 1080, "height": 1920 },
+  "verified": false,
+  "note": "⚠ 미검증 추정치 — 공식 스펙 문서나 실측 스크린샷으로 확인된 값이 아님. 실사용 전 반드시 TikTok/Shorts/Reels 실제 화면 스크린샷에서 UI 요소(캡션 영역/좋아요·공유 버튼/프로필/진행바 등) 좌표를 재서 아래 top/bottom/left/right 값을 재검증할 것.",
+  "platforms": {
+    "tiktok": { "top": 150, "bottom": 320, "left": 0, "right": 100 },
+    "shorts": { "top": 100, "bottom": 230, "left": 0, "right": 0 },
+    "reels":  { "top": 100, "bottom": 260, "left": 0, "right": 100 }
+  }
+}
