@@ -1,6 +1,6 @@
 # video-lint
 
-[![Tests](https://github.com/<owner>/<repo>/actions/workflows/test.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/test.yml)
+[![Tests](https://github.com/bosch2349/video-lint/actions/workflows/test.yml/badge.svg)](https://github.com/bosch2349/video-lint/actions/workflows/test.yml)
 
 AI 생성 숏폼 영상(TikTok/YouTube Shorts/Reels)을 게시 전에 검사하는 로컬 QA CLI.
 
@@ -91,7 +91,7 @@ Roadmap:
 요구사항: Python 3.11+, ffmpeg/ffprobe (시스템에 미리 설치되어 있어야 함 — macOS는 `brew install ffmpeg`).
 
 ```
-git clone <repo-url>
+git clone https://github.com/bosch2349/video-lint.git
 cd video-lint
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e .
