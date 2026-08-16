@@ -1,5 +1,5 @@
 from video_lint.checks import Status
-from video_lint.subtitles import check_ass_safe_zone, check_safe_zone, check_srt_safe_zone
+from video_lint.subtitles import check_ass_safe_zone, check_safe_zone, check_srt_safe_zone, load_safe_zones
 
 ASS_TEMPLATE = """[Script Info]
 PlayResX: 1080
@@ -58,9 +58,46 @@ def test_no_subs_returns_skip():
     assert result.status == Status.SKIP
 
 
+def test_bundled_safe_zones_json_has_source_and_confidence_metadata():
+    zones = load_safe_zones()
+    assert zones["verified"] is False  # 조사만으로 확정 불가 -> verified=true로 바꾸지 않음
+
+    platforms = zones["platforms"]
+    assert platforms["tiktok"]["confidence"] == "estimate"
+    assert platforms["shorts"]["confidence"] == "estimate"
+    assert platforms["reels"]["confidence"] == "conservative_estimate"
+
+    for platform in ("tiktok", "shorts", "reels"):
+        entry = platforms[platform]
+        assert entry["source"]
+        assert entry["source_url"].startswith("https://")
+        assert entry["note"]
+        # 신규 메타데이터 필드가 기존 danger zone 판정용 키는 건드리지 않음
+        for key in ("top", "bottom", "left", "right"):
+            assert isinstance(entry[key], (int, float))
+
+
+def test_bundled_safe_zones_json_still_drives_real_danger_zone_check():
+    # source/confidence/note 등 신규 필드가 섞여 들어가도 기존 판정 로직이 깨지지 않는지 확인
+    zones = load_safe_zones()
+    tiktok_zone = zones["platforms"]["tiktok"]
+    zone = {
+        "platform": "tiktok",
+        "ref_width": zones["reference_resolution"]["width"],
+        "ref_height": zones["reference_resolution"]["height"],
+        **tiktok_zone,
+    }
+    # bottom danger zone 안쪽에 딱 붙는 MarginV -> FAIL이 그대로 나와야 함
+    content = ASS_TEMPLATE.format(marginv=10)
+    result = check_ass_safe_zone(content, zone, font_size_px=80)
+    assert result.status == Status.FAIL
+
+
 if __name__ == "__main__":
     test_ass_marginv_overlaps_bottom_danger_zone()
     test_ass_marginv_clears_danger_zone()
     test_srt_short_vs_long_text_differ()
     test_no_subs_returns_skip()
+    test_bundled_safe_zones_json_has_source_and_confidence_metadata()
+    test_bundled_safe_zones_json_still_drives_real_danger_zone_check()
     print("모든 테스트 통과")

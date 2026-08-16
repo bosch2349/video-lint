@@ -1,6 +1,6 @@
 # video-lint
 
-> ⚠️ **safe zone / 판정 임계값 값 검증 안 됨**: `video_lint/safe_zones.json`의 TikTok/Shorts/Reels danger zone 픽셀 값은 공식 스펙 문서나 실측 스크린샷으로 확인되지 않은 추정치입니다. 실사용 전 반드시 실제 앱 스크린샷으로 UI 요소(캡션 영역/좋아요·공유 버튼/프로필/진행바 등) 좌표를 재서 재검증하세요. `video_lint/thresholds.json`의 음량(LUFS)/클리핑 하한선도 같은 이유로 미검증 참고값입니다. 두 파일 모두 `"verified": false`인 동안 CLI 실행 시마다 경고가 출력됩니다.
+> ⚠️ **safe zone / 판정 임계값 값 검증 안 됨**: `video_lint/safe_zones.json`의 TikTok/Shorts/Reels danger zone 픽셀 값은 공식 스펙 문서나 실측 스크린샷으로 확인되지 않은 **엔지니어링 추정치(engineering estimate)** 입니다. 플랫폼 UI가 바뀌면 이 좌표도 같이 바뀌어야 할 수 있습니다. `video_lint/thresholds.json`의 음량(LUFS)/클리핑 하한선도 같은 이유로 미검증 참고값입니다. 두 파일 모두 `"verified": false`인 동안 CLI 실행 시마다 경고가 출력됩니다. 근거와 신뢰도 상세는 아래 [Safe Zone 신뢰도](#safe-zone-신뢰도) 절 참고 — 다음 목표는 실제 앱 스크린샷으로 좌표를 재서 `confidence: "screenshot_verified"`로 올리는 것입니다.
 
 숏폼 영상(TikTok/Shorts/Reels) 게시 전 로컬에서 자동 QA 체크하는 CLI 도구. 서버 없음, 전부 로컬 처리.
 
@@ -34,6 +34,25 @@ video-lint <video.mp4> [--subs subtitle.srt|.ass|.ssa] [--platform tiktok|shorts
 - `--font-size`: SRT/ASS 기본 정렬 자막의 폰트 높이(px) 직접 지정. 생략하면 화면 높이의 약 4.5%로 추정.
 - 결과 상태는 4단계: `PASS`/`WARN`/`FAIL`/`SKIP` (SKIP은 ffmpeg 미설치·실행 실패, 또는 `--subs` 미지정 등 체크 자체를 못 한 경우). 터미널(TTY)에서는 상태에 색을 입혀 보여주고, 파이프/리다이렉트 시에는 색 코드 없이 순수 텍스트로 출력됩니다.
 - 종료 코드: FAIL이 하나라도 있으면 `1`, 아니면 `0`.
+
+## Safe Zone 신뢰도
+
+`safe_zones.json`의 목표는 "정답 좌표 제공"이 아니라 **근거와 신뢰도 관리**입니다. 플랫폼별로 `top`/`bottom`/`left`/`right` 좌표 옆에 아래 필드를 같이 기록합니다.
+
+| 필드 | 의미 |
+|---|---|
+| `confidence` | `estimate`(공식 고정 spec 없음) / `conservative_estimate`(공식 수치는 있으나 광고 기준이라 organic 미확인) / `screenshot_verified`(실제 앱 스크린샷으로 실측 — 아직 어떤 플랫폼도 이 단계 아님) |
+| `source` | 왜 이 신뢰도인지에 대한 설명 |
+| `source_url` | 조사한 공식 문서 링크 |
+| `note` | 한 줄 요약 |
+
+조사해보니 세 플랫폼 다 "이 좌표가 100% 맞다"고 확정할 공식 고정 spec이 없었습니다:
+
+- **TikTok** (`confidence: estimate`) — [TikTok Ads Manager 공식 문서](https://ads.tiktok.com/help/article/tiktok-auction-in-feed-ads)도 고정 수치 대신 "캡션 길이/광고 포맷에 따라 safe zone이 달라진다"고만 명시. organic 영상용 공식 spec 자체가 없음.
+- **YouTube Shorts** (`confidence: estimate`) — [YouTube 공식 고객센터](https://support.google.com/youtube/answer/16215842)가 명시적으로 "고정 값 없음, 편집 UI에서 동적으로 안내선 표시"라고 밝힘.
+- **Instagram/Facebook Reels** (`confidence: conservative_estimate`) — [Meta 공식 Ads Help Center](https://www.facebook.com/business/help/980593475366490/)에 유일하게 구체적 수치(상단 14%/하단 35%/좌우 각 6%)가 있지만, 이건 광고(CTA/상품태그 포함) 기준이라 organic Reels UI와 같다는 보장이 없어 한 단계 낮춰서 분류. 참고용으로 `ads_safe_zone_reference_1080x1920` 필드에 Meta 수치를 따로 기록해뒀고, 실제 danger zone 판정에는 쓰지 않음.
+
+그래서 `verified: false`는 그대로 유지했고, 앞으로 플랫폼 UI가 바뀌면 이 좌표도 같이 갱신해야 합니다. 다음 단계는 실제 앱을 켜서 스크린샷으로 UI 요소 좌표를 재고 `confidence: "screenshot_verified"`로 올리는 것 — 이건 사람이 직접 해야 하는 작업입니다.
 
 사람이 보는 기본 출력 예:
 

@@ -1,10 +1,38 @@
 {
   "reference_resolution": { "width": 1080, "height": 1920 },
   "verified": false,
-  "note": "⚠ 미검증 추정치 — 공식 스펙 문서나 실측 스크린샷으로 확인된 값이 아님. 실사용 전 반드시 TikTok/Shorts/Reels 실제 화면 스크린샷에서 UI 요소(캡션 영역/좋아요·공유 버튼/프로필/진행바 등) 좌표를 재서 아래 top/bottom/left/right 값을 재검증할 것.",
+  "note": "⚠ 미검증 추정치 — 공식 스펙 문서나 실측 스크린샷으로 확인된 값이 아님. 실사용 전 반드시 TikTok/Shorts/Reels 실제 화면 스크린샷에서 UI 요소(캡션 영역/좋아요·공유 버튼/프로필/진행바 등) 좌표를 재서 아래 top/bottom/left/right 값을 재검증할 것. 목표는 '정답 좌표 제공'이 아니라 '근거와 신뢰도 관리' — 각 플랫폼 항목의 confidence/source/note를 함께 참고할 것.",
   "platforms": {
-    "tiktok": { "top": 150, "bottom": 320, "left": 0, "right": 100 },
-    "shorts": { "top": 100, "bottom": 230, "left": 0, "right": 0 },
-    "reels":  { "top": 100, "bottom": 260, "left": 0, "right": 100 }
+    "tiktok": {
+      "top": 150,
+      "bottom": 320,
+      "left": 0,
+      "right": 100,
+      "confidence": "estimate",
+      "note": "공식 organic video 고정 pixel spec 없음. 광고 템플릿 기반 참고.",
+      "source": "TikTok Ads Manager 공식 문서도 고정 수치 대신 '캡션 길이/광고 포맷에 따라 safe zone 크기가 달라진다'고 명시하며, 다운로드용 safe zone 템플릿(zip)만 제공함. Organic(비광고) 영상용 공식 spec 자체가 존재하지 않음 — 현재 좌표는 여러 크리에이터 툴/블로그 추정치를 참고한 엔지니어링 추정치.",
+      "source_url": "https://ads.tiktok.com/help/article/tiktok-auction-in-feed-ads"
+    },
+    "shorts": {
+      "top": 100,
+      "bottom": 230,
+      "left": 0,
+      "right": 0,
+      "confidence": "estimate",
+      "note": "YouTube 공식 가이드상 고정 safe zone 없음. 앱 편집 UI에서 동적으로 제공.",
+      "source": "YouTube 공식 고객센터 문서: 텍스트/스티커를 옮길 때 좋아요·댓글·설명 등 UI 요소 위치에 맞춰 화면에 실시간으로 안내선이 표시되는 방식이며, 고정 픽셀/퍼센트 값은 공식적으로 발표되지 않음 — 애초에 정적 config 값으로 완전히 표현할 수 없는 구조. 현재 좌표는 엔지니어링 추정치.",
+      "source_url": "https://support.google.com/youtube/answer/16215842"
+    },
+    "reels": {
+      "top": 100,
+      "bottom": 260,
+      "left": 0,
+      "right": 100,
+      "confidence": "conservative_estimate",
+      "note": "Meta 공식 Ads 수치는 있으나 광고 기준이라 organic Reels UI와 동일하다는 보장이 없어 conservative_estimate로 분류.",
+      "source": "Meta 공식 Ads Help Center는 Reels 광고 기준 상단 14% / 하단 35% / 좌우 각 6% (1080x1920 기준 top≈269px, bottom≈672px, left/right≈65px)를 명시함 — 세 플랫폼 중 유일하게 확인된 공식 고정 수치. 다만 이는 CTA/상품 태그가 포함된 광고 safe zone이라 organic 게시물 UI보다 넓게 잡혀 있을 수 있음. 조사 시점 기준 organic Reels UI 자체의 공식 spec은 못 찾음 — 아래 top/bottom/left/right는 기존 엔지니어링 추정치를 그대로 유지.",
+      "source_url": "https://www.facebook.com/business/help/980593475366490/",
+      "ads_safe_zone_reference_1080x1920": { "top": 269, "bottom": 672, "left": 65, "right": 65 }
+    }
   }
 }
