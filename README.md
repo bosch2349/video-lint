@@ -1,8 +1,88 @@
 # video-lint
 
-> ⚠️ **safe zone / 판정 임계값 값 검증 안 됨**: `video_lint/safe_zones.json`의 TikTok/Shorts/Reels danger zone 픽셀 값은 공식 스펙 문서나 실측 스크린샷으로 확인되지 않은 **엔지니어링 추정치(engineering estimate)** 입니다. 플랫폼 UI가 바뀌면 이 좌표도 같이 바뀌어야 할 수 있습니다. `video_lint/thresholds.json`의 음량(LUFS)/클리핑 하한선도 같은 이유로 미검증 참고값입니다. 두 파일 모두 `"verified": false`인 동안 CLI 실행 시마다 경고가 출력됩니다. 근거와 신뢰도 상세는 아래 [Safe Zone 신뢰도](#safe-zone-신뢰도) 절 참고 — 다음 목표는 실제 앱 스크린샷으로 좌표를 재서 `confidence: "screenshot_verified"`로 올리는 것입니다.
+AI 생성 숏폼 영상(TikTok/YouTube Shorts/Reels)을 게시 전에 검사하는 로컬 QA CLI.
 
-숏폼 영상(TikTok/Shorts/Reels) 게시 전 로컬에서 자동 QA 체크하는 CLI 도구. 서버 없음, 전부 로컬 처리.
+> ⚠️ **safe zone / 판정 임계값 값은 아직 미검증 엔지니어링 추정치**입니다 (`safe_zones.json`/`thresholds.json`, `"verified": false`). CLI 실행 시마다 경고가 출력됩니다. 근거·신뢰도는 [Safe Zone 신뢰도](#safe-zone-신뢰도) 절 참고.
+
+## Why video-lint?
+
+AI로 영상을 빠르게 만들다 보면 업로드 직전에야 눈에 띄는 문제들이 있습니다:
+
+- 첫 프레임이 검게 나오는 문제
+- 영상 중간/끝에서 멈추는(freeze) 문제
+- 음량이 너무 작거나 클리핑되는 문제
+- 자막이 플랫폼 UI(좋아요·댓글·캡션 영역)와 겹치는 문제
+- 잘못된 화면 비율/코덱
+
+video-lint는 이런 문제를 업로드 전에 로컬에서 자동으로 검사합니다. 서버 없음, 업로드 없음 — ffmpeg만으로 전부 로컬 처리.
+
+## Features
+
+| Check | Description |
+|---|---|
+| `codec/resolution` | 영상 비율(9:16/1:1/16:9)·코덱(H.264/H.265) 검사 |
+| `blackframes` | 시작/끝 구간 검은 화면 검사 |
+| `freeze` | 멈춤(freeze) 구간 검사 — 끝까지 회복 안 되는 정지도 감지 |
+| `loudness` | 음량(LUFS)·클리핑 검사 |
+| `safe zone` | 플랫폼 UI 영역 자막 침범 검사 |
+
+## Quick Start
+
+설치:
+
+```
+pip install -e .
+```
+
+실행:
+
+```
+video-lint sample.mp4
+```
+
+JSON (CI/자동화 파이프라인용):
+
+```
+video-lint sample.mp4 --json
+```
+
+HTML (브라우저로 바로 열어보는 리포트):
+
+```
+video-lint sample.mp4 --html report.html
+```
+
+## Example Output
+
+```
+$ video-lint clip.mp4 --platform tiktok
+[PASS] codec/resolution: codec=h264, 1080x1920 (9:16)
+[FAIL] blackframes: 시작 1.0초 구간이 블랙프레임으로 덮임 (0.97s); 끝 블랙프레임 없음
+[WARN] loudness: 통합 음량 -35.0 LUFS (기준 -30.0 LUFS 미만 — 너무 조용함); 클리핑 미검출
+[PASS] freeze: 정지 구간 없음
+[SKIP] safe-zone/tiktok: 자막 파일을 안 줘서 safe zone 체크를 건너뜀 (burned-in 자막일 수 있음)
+```
+
+FAIL이 하나라도 있으면 종료 코드 `1`, 아니면 `0`.
+
+## Project Status
+
+**v0.1 MVP**
+
+완료:
+- CLI (사람이 보는 컬러 체크리스트 출력)
+- `--json` 출력 (CI/자동화 파이프라인용)
+- `--html` standalone 리포트
+- ffmpeg 기반 5개 검사 (codec/resolution, blackframes, loudness, freeze, safe zone)
+
+Roadmap:
+- 실제 앱 스크린샷 기반 safe zone 검증 (`confidence: screenshot_verified`로 전환)
+- 영상 미리보기(썸네일/타임라인)가 포함된 리포트
+- AI 기반 수정 추천 (예: "첫 0.97초 제거 권장")
+
+---
+
+아래는 상세 문서입니다.
 
 ## 설치
 
@@ -23,7 +103,7 @@ video-lint --help
 
 개발 중 코드를 수정하면 `-e`(editable) 설치라 재설치 없이 바로 반영됩니다. 테스트 실행은 아래 [테스트](#테스트) 절 참고.
 
-## 사용법
+## 상세 사용법
 
 ```
 video-lint <video.mp4> [--subs subtitle.srt|.ass|.ssa] [--platform tiktok|shorts|reels|all] [--font-size PX] [--json] [--html PATH]
@@ -139,5 +219,9 @@ for f in tests/test_*.py; do PYTHONPATH=. python3 "$f"; done
 
 두 종류로 나뉩니다:
 
-- **mock 테스트** (`test_checks.py`, `test_subtitles.py`, `test_ffmpeg_filters.py`, `test_checks_media.py`, `test_cli.py`): ffmpeg 실제 실행 없이 stderr 샘플 텍스트/함수 바꿔치기로 파싱·판정 로직만 검증. ffmpeg 없어도 항상 통과해야 함.
+- **mock 테스트** (`test_checks.py`, `test_subtitles.py`, `test_ffmpeg_filters.py`, `test_checks_media.py`, `test_cli.py`, `test_report.py`): ffmpeg 실제 실행 없이 stderr 샘플 텍스트/함수 바꿔치기로 파싱·판정·리포트 렌더링 로직만 검증. ffmpeg 없어도 항상 통과해야 함.
 - **E2E 테스트** (`test_e2e.py`): `tests/fixtures/generate.py`가 ffmpeg `lavfi` 소스로 만든 합성 영상에 CLI 전체를 실제로 돌려서 검증. ffmpeg/ffprobe가 없으면 조용히 건너뜀. fixture 상세는 [tests/fixtures/README.md](tests/fixtures/README.md) 참고.
+
+## 라이선스
+
+[MIT](LICENSE)
