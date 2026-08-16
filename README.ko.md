@@ -64,10 +64,10 @@ video-lint sample.mp4 --html report.html
 ```
 $ video-lint clip.mp4 --platform tiktok
 [PASS] codec/resolution: codec=h264, 1080x1920 (9:16)
-[FAIL] blackframes: 시작 1.0초 구간이 블랙프레임으로 덮임 (0.97s); 끝 블랙프레임 없음
-[WARN] loudness: 통합 음량 -35.0 LUFS (기준 -30.0 LUFS 미만 — 너무 조용함); 클리핑 미검출
-[PASS] freeze: 정지 구간 없음
-[SKIP] safe-zone/tiktok: 자막 파일을 안 줘서 safe zone 체크를 건너뜀 (burned-in 자막일 수 있음)
+[FAIL] blackframes: Start: 1.0s window covered by black frames (0.97s); End: no black frames
+[WARN] loudness: Integrated loudness -35.0 LUFS (below -30.0 LUFS threshold — too quiet); No clipping detected
+[PASS] freeze: No freeze detected
+[SKIP] safe-zone/tiktok: Skipped safe zone check because no subtitle file was given (video may have burned-in captions)
 ```
 
 FAIL이 하나라도 있으면 종료 코드 `1`, 아니면 `0`.
@@ -146,10 +146,10 @@ video-lint <video.mp4> [--subs subtitle.srt|.ass|.ssa] [--platform tiktok|shorts
 ```
 $ video-lint clip.mp4 --platform tiktok
 [PASS] codec/resolution: codec=h264, 1080x1920 (9:16)
-[FAIL] blackframes: 시작 1.0초 구간이 블랙프레임으로 덮임 (0.97s); 끝 블랙프레임 없음
-[WARN] loudness: 통합 음량 -35.0 LUFS (기준 -30.0 LUFS 미만 — 너무 조용함); 클리핑 미검출
-[PASS] freeze: 정지 구간 없음
-[SKIP] safe-zone/tiktok: 자막 파일을 안 줘서 safe zone 체크를 건너뜀 (burned-in 자막일 수 있음)
+[FAIL] blackframes: Start: 1.0s window covered by black frames (0.97s); End: no black frames
+[WARN] loudness: Integrated loudness -35.0 LUFS (below -30.0 LUFS threshold — too quiet); No clipping detected
+[PASS] freeze: No freeze detected
+[SKIP] safe-zone/tiktok: Skipped safe zone check because no subtitle file was given (video may have burned-in captions)
 ```
 
 ### `--json` 출력
@@ -171,7 +171,7 @@ $ video-lint clip.mp4 --platform tiktok --json
     {
       "name": "blackframes",
       "status": "FAIL",
-      "message": "시작 1.0초 구간이 블랙프레임으로 덮임 (0.97s); 끝 블랙프레임 없음",
+      "message": "Start: 1.0s window covered by black frames (0.97s); End: no black frames",
       "details": { "window_seconds": 1.0, "start": { "covered_seconds": 0.967, "intervals": [...] }, "end": { "covered_seconds": 0, "intervals": [] } }
     }
   ]
