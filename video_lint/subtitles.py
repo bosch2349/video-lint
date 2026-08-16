@@ -18,7 +18,7 @@ _AVG_CHAR_WIDTH_RATIO = 0.6      # 폰트 높이 대비 평균 글자 폭 추정
 _TEXT_BLOCK_WIDTH_FRACTION = 0.9  # 자막 블록이 차지한다고 가정하는 화면 폭 비율
 
 SRT_ESTIMATE_DISCLAIMER = (
-    "⚠ 추정치 (SRT는 실제 위치 정보 없음, 편집기에서 직접 위치를 옮겼다면 부정확할 수 있음)"
+    "⚠ Estimate (SRT has no real position data; may be inaccurate if captions were manually repositioned in an editor)"
 )
 
 
@@ -138,7 +138,7 @@ def check_ass_safe_zone(content: str, zone: dict, font_size_px: float = None) ->
     cues = _parse_ass_events(content)
     if not cues:
         details = {"platform": zone["platform"], "format": "ass", "danger_zone": _zone_details(zone)}
-        return CheckResult(f"safe-zone/{zone['platform']}", Status.WARN, "ASS 파일에서 Dialogue 라인을 찾지 못함", details)
+        return CheckResult(f"safe-zone/{zone['platform']}", Status.WARN, "No Dialogue lines found in the ASS file", details)
 
     font_height = font_size_px or ref_h * DEFAULT_FONT_SIZE_RATIO
 
@@ -166,9 +166,9 @@ def check_ass_safe_zone(content: str, zone: dict, font_size_px: float = None) ->
     total = len(cues)
     overall = Status.FAIL if fail else Status.WARN if warn else Status.PASS
     message = (
-        f"자막 {total}개 중 FAIL {fail}개, WARN {warn}개 "
+        f"{total} caption(s): {fail} FAIL, {warn} WARN "
         f"(danger zone: top={zone['top']}px bottom={zone['bottom']}px left={zone['left']}px right={zone['right']}px, "
-        f"기준해상도 {ref_w}x{ref_h})"
+        f"reference resolution {ref_w}x{ref_h})"
     )
     details = {
         "platform": zone["platform"],
@@ -199,7 +199,7 @@ def check_srt_safe_zone(content: str, zone: dict, font_size_px: float = None) ->
     cues = _parse_srt_cues(content)
     if not cues:
         details = {"platform": zone["platform"], "format": "srt", "danger_zone": _zone_details(zone)}
-        return CheckResult(f"safe-zone/{zone['platform']}", Status.WARN, "SRT 파일에서 자막 큐를 찾지 못함", details)
+        return CheckResult(f"safe-zone/{zone['platform']}", Status.WARN, "No subtitle cues found in the SRT file", details)
 
     ref_w, ref_h = zone["ref_width"], zone["ref_height"]
     font_height = font_size_px or ref_h * DEFAULT_FONT_SIZE_RATIO
@@ -218,9 +218,9 @@ def check_srt_safe_zone(content: str, zone: dict, font_size_px: float = None) ->
     total = len(cues)
     overall = Status.FAIL if fail else Status.WARN if warn else Status.PASS
     message = (
-        f"자막 {total}개 중 FAIL {fail}개, WARN {warn}개 "
+        f"{total} caption(s): {fail} FAIL, {warn} WARN "
         f"(danger zone: top={zone['top']}px bottom={zone['bottom']}px left={zone['left']}px right={zone['right']}px, "
-        f"기준해상도 {ref_w}x{ref_h}, 폰트 높이 추정 {font_height:.0f}px) — {SRT_ESTIMATE_DISCLAIMER}"
+        f"reference resolution {ref_w}x{ref_h}, estimated font height {font_height:.0f}px) — {SRT_ESTIMATE_DISCLAIMER}"
     )
     details = {
         "platform": zone["platform"],
@@ -243,7 +243,7 @@ def check_safe_zone(subs_path, platform: str, zones_config: dict, font_size_px: 
         return CheckResult(
             f"safe-zone/{platform}",
             Status.SKIP,
-            "자막 파일을 안 줘서 safe zone 체크를 건너뜀 (burned-in 자막일 수 있음)",
+            "Skipped safe zone check because no subtitle file was given (video may have burned-in captions)",
             {"platform": platform},
         )
 
@@ -264,4 +264,4 @@ def check_safe_zone(subs_path, platform: str, zones_config: dict, font_size_px: 
     if suffix == ".srt":
         return check_srt_safe_zone(content, zone, font_size_px)
     details = {"platform": platform, "format": suffix.lstrip(".")}
-    return CheckResult(f"safe-zone/{platform}", Status.WARN, f"지원하지 않는 자막 포맷: {suffix}", details)
+    return CheckResult(f"safe-zone/{platform}", Status.WARN, f"Unsupported subtitle format: {suffix}", details)

@@ -9,13 +9,13 @@ def test_pass_9_16_h264():
 def test_warn_bad_ratio():
     result = check_codec_resolution({"codec_name": "h264", "width": 1280, "height": 960})
     assert result.status == Status.WARN
-    assert "비율" in result.message
+    assert "Aspect ratio" in result.message
 
 
 def test_warn_bad_codec():
     result = check_codec_resolution({"codec_name": "vp9", "width": 1080, "height": 1920})
     assert result.status == Status.WARN
-    assert "코덱" in result.message
+    assert "Codec" in result.message
 
 
 def test_fail_missing_dimensions():

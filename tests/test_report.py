@@ -16,7 +16,7 @@ def _results():
         CheckResult(
             "blackframes",
             Status.FAIL,
-            "시작 1.0초 구간이 블랙프레임으로 덮임 (0.97s)",
+            "Start: 1.0s window covered by black frames (0.97s)",
             {
                 "window_seconds": 1.0,
                 "start": {
@@ -26,8 +26,8 @@ def _results():
                 "end": {"covered_seconds": 0, "intervals": []},
             },
         ),
-        CheckResult("loudness", Status.WARN, "통합 음량 -35.0 LUFS", {"integrated_lufs": -35.0}),
-        CheckResult("safe-zone/tiktok", Status.SKIP, "자막 파일을 안 줘서 건너뜀", {"platform": "tiktok"}),
+        CheckResult("loudness", Status.WARN, "Integrated loudness -35.0 LUFS", {"integrated_lufs": -35.0}),
+        CheckResult("safe-zone/tiktok", Status.SKIP, "Skipped because no subtitle file was given", {"platform": "tiktok"}),
     ]
 
 

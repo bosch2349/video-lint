@@ -58,7 +58,7 @@ def test_heavy_clip_flags_clipping():
     data = _run_json([_fixture("heavy_clip"), "--platform", "tiktok", "--json"])
     loudness = next(c for c in data["checks"] if c["name"] == "loudness")
     assert loudness["status"] == "WARN"
-    assert "클리핑" in loudness["message"]
+    assert "clipping" in loudness["message"]
     black = next(c for c in data["checks"] if c["name"] == "blackframes")
     assert black["status"] == "FAIL"
 

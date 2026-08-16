@@ -15,5 +15,5 @@ def probe_video(path: str) -> dict:
     data = json.loads(result.stdout)
     streams = data.get("streams", [])
     if not streams:
-        raise RuntimeError(f"{path}에서 비디오 스트림을 찾을 수 없음")
+        raise RuntimeError(f"No video stream found in {path}")
     return streams[0]

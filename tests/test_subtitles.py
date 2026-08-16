@@ -47,7 +47,7 @@ def test_srt_short_vs_long_text_differ():
     short_result = check_srt_safe_zone(short, zone, font_size_px=80)
     long_result = check_srt_safe_zone(long_text, zone, font_size_px=80)
 
-    assert "추정치" in short_result.message
+    assert "Estimate" in short_result.message
     assert short_result.status != long_result.status
     assert short_result.status == Status.FAIL
     assert long_result.status == Status.WARN

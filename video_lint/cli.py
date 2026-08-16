@@ -31,32 +31,32 @@ _RESET = "\033[0m"
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="video-lint",
-        description="숏폼 영상(TikTok/Shorts/Reels) 게시 전 로컬 QA 체크 도구",
+        description="Local QA CLI for short-form videos (TikTok/Shorts/Reels) before you publish",
     )
-    parser.add_argument("video", help="검사할 영상 파일 경로")
-    parser.add_argument("--subs", help="자막 파일 경로 (.srt/.ass/.ssa)")
+    parser.add_argument("video", help="Path to the video file to check")
+    parser.add_argument("--subs", help="Subtitle file path (.srt/.ass/.ssa)")
     parser.add_argument(
         "--platform",
         choices=[*_PLATFORMS, "all"],
         default="all",
-        help="대상 플랫폼 (기본: all)",
+        help="Target platform (default: all)",
     )
     parser.add_argument(
         "--font-size",
         type=float,
         default=None,
-        help="SRT/ASS 기본 정렬 자막의 폰트 높이(px) 직접 지정 (기본: 화면 높이의 약 4.5%%로 추정)",
+        help="Explicit font height (px) for default-aligned SRT/ASS captions (default: estimated as ~4.5%% of frame height)",
     )
     parser.add_argument(
         "--json",
         action="store_true",
-        help="사람이 보는 체크리스트 대신 JSON으로 출력 (CI/자동화 파이프라인용)",
+        help="Print JSON instead of the human-readable checklist (for CI/automation pipelines)",
     )
     parser.add_argument(
         "--html",
         metavar="PATH",
         default=None,
-        help="결과를 사람이 보기 좋은 standalone HTML 파일로 저장 (예: --html report.html)",
+        help="Save results as a human-friendly standalone HTML file (e.g. --html report.html)",
     )
     return parser
 
@@ -106,10 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         probe = probe_video(args.video)
     except FileNotFoundError:
-        print("오류: ffprobe를 찾을 수 없음 (ffmpeg 설치 여부 확인)", file=sys.stderr)
+        print("Error: ffprobe not found (check that ffmpeg is installed)", file=sys.stderr)
         return 1
     except subprocess.CalledProcessError as e:
-        print(f"오류: ffprobe 실행 실패 - {e.stderr.strip()}", file=sys.stderr)
+        print(f"Error: ffprobe execution failed - {e.stderr.strip()}", file=sys.stderr)
         return 1
 
     zones_config = load_safe_zones()

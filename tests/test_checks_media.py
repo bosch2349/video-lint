@@ -106,7 +106,7 @@ def test_check_freeze_fail_when_unresolved_at_eof():
     try:
         result = check_freeze("dummy.mp4", THRESHOLDS)
         assert result.status == Status.FAIL
-        assert "회복되지 않음" in result.message
+        assert "never recovers" in result.message
     finally:
         _restore()
 
@@ -169,7 +169,7 @@ def test_check_loudness_warn_clipping_even_with_few_peak_samples():
     try:
         result = check_loudness("dummy.mp4", THRESHOLDS)
         assert result.status == Status.WARN
-        assert "클리핑" in result.message
+        assert "clipping" in result.message
     finally:
         _restore()
 

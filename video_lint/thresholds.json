@@ -1,6 +1,6 @@
 {
   "verified": false,
-  "note": "⚠ 미검증 추정치 — blackdetect/freezedetect 파라미터는 ffmpeg 기본값을 참고해 조정한 값이고, loudness/clipping 하한선은 공식 기준으로 검증되지 않은 참고용 값임. 실사용 전 검증 권장.",
+  "note": "⚠ Unverified estimate — the blackdetect/freezedetect parameters were tuned based on ffmpeg's defaults, and the loudness/clipping lower bounds are reference values not verified against an official standard. Verification recommended before production use.",
   "blackdetect": {
     "window_seconds": 1.0,
     "d": 0.1,

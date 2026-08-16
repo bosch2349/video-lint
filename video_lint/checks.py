@@ -39,8 +39,8 @@ def load_thresholds(config_path: Path = None) -> dict:
 
 def _ffmpeg_skip_result(name: str, error: Exception) -> CheckResult:
     if isinstance(error, FileNotFoundError):
-        return CheckResult(name, Status.SKIP, "ffmpeg를 찾을 수 없음 (ffmpeg 설치 여부 확인)")
-    return CheckResult(name, Status.SKIP, f"ffmpeg 실행 실패로 체크를 건너뜀: {error}")
+        return CheckResult(name, Status.SKIP, "ffmpeg not found (check that ffmpeg is installed)")
+    return CheckResult(name, Status.SKIP, f"Skipped check due to ffmpeg execution failure: {error}")
 
 
 _ALLOWED_CODECS = {"h264", "hevc"}
@@ -60,7 +60,7 @@ def check_codec_resolution(probe: dict) -> CheckResult:
 
     if not width or not height:
         details = {"codec": codec, "width": width, "height": height}
-        return CheckResult(name, Status.FAIL, "ffprobe에서 width/height를 읽지 못함", details)
+        return CheckResult(name, Status.FAIL, "Could not read width/height from ffprobe", details)
 
     ratio = width / height
     matched = next(
@@ -77,9 +77,9 @@ def check_codec_resolution(probe: dict) -> CheckResult:
 
     issues = []
     if codec not in _ALLOWED_CODECS:
-        issues.append(f"코덱 '{codec}'은 H.264/H.265가 아님")
+        issues.append(f"Codec '{codec}' is not H.264/H.265")
     if matched is None:
-        issues.append(f"비율 {width}:{height} ({ratio:.3f})이 9:16/1:1/16:9 어디에도 해당 안 됨")
+        issues.append(f"Aspect ratio {width}:{height} ({ratio:.3f}) doesn't match 9:16, 1:1, or 16:9")
 
     if issues:
         return CheckResult(name, Status.WARN, "; ".join(issues), details)
@@ -101,15 +101,15 @@ def check_blackframes(path: str, thresholds: dict) -> CheckResult:
         intervals = ff.parse_blackdetect_output(stderr)
         covered = sum(i["duration"] for i in intervals)
         if covered <= 0:
-            status, msg = Status.PASS, f"{label} 블랙프레임 없음"
+            status, msg = Status.PASS, f"{label}: no black frames"
         elif covered >= window_seconds * cfg["fail_black_ratio"]:
-            status, msg = Status.FAIL, f"{label} {window_seconds}초 구간이 블랙프레임으로 덮임 ({covered:.2f}s)"
+            status, msg = Status.FAIL, f"{label}: {window_seconds}s window covered by black frames ({covered:.2f}s)"
         else:
-            status, msg = Status.WARN, f"{label} 일부 구간에 블랙프레임 감지됨 ({covered:.2f}s / {window_seconds}s)"
+            status, msg = Status.WARN, f"{label}: black frames detected in part of the window ({covered:.2f}s / {window_seconds}s)"
         return status, msg, {"covered_seconds": round(covered, 3), "intervals": intervals}
 
-    start_status, start_msg, start_detail = analyze(start_stderr, "시작")
-    end_status, end_msg, end_detail = analyze(end_stderr, "끝")
+    start_status, start_msg, start_detail = analyze(start_stderr, "Start")
+    end_status, end_msg, end_detail = analyze(end_stderr, "End")
 
     details = {"window_seconds": window_seconds, "start": start_detail, "end": end_detail}
     return CheckResult(name, worst_status(start_status, end_status), f"{start_msg}; {end_msg}", details)
@@ -126,20 +126,20 @@ def check_freeze(path: str, thresholds: dict) -> CheckResult:
 
     intervals = ff.parse_freezedetect_output(stderr)
     if not intervals:
-        return CheckResult(name, Status.PASS, "정지 구간 없음", {"intervals": []})
+        return CheckResult(name, Status.PASS, "No freeze detected", {"intervals": []})
 
     unresolved = [i for i in intervals if i["duration"] is None]
     if unresolved:
         start = unresolved[0]["start"]
-        message = f"{start:.2f}s부터 영상이 끝날 때까지 정지 상태에서 회복되지 않음"
+        message = f"Frozen from {start:.2f}s and never recovers before the clip ends"
         return CheckResult(name, Status.FAIL, message, {"intervals": intervals, "unresolved": True})
 
     longest = max(i["duration"] for i in intervals)
     details = {"intervals": intervals, "longest_duration": longest, "unresolved": False}
     if longest >= cfg["fail_duration"]:
-        message = f"{len(intervals)}개 정지 구간 감지, 최대 {longest:.2f}s (기준 {cfg['fail_duration']}s 이상 FAIL)"
+        message = f"{len(intervals)} freeze interval(s) detected, longest {longest:.2f}s (FAIL threshold: {cfg['fail_duration']}s)"
         return CheckResult(name, Status.FAIL, message, details)
-    return CheckResult(name, Status.WARN, f"{len(intervals)}개 정지 구간 감지, 최대 {longest:.2f}s", details)
+    return CheckResult(name, Status.WARN, f"{len(intervals)} freeze interval(s) detected, longest {longest:.2f}s", details)
 
 
 def check_loudness(path: str, thresholds: dict) -> CheckResult:
@@ -161,20 +161,20 @@ def check_loudness(path: str, thresholds: dict) -> CheckResult:
 
     integrated = loudness.get("integrated_lufs")
     if integrated is None:
-        issues.append("통합 음량(LUFS)을 측정하지 못함")
+        issues.append("Could not measure integrated loudness (LUFS)")
         statuses.append(Status.WARN)
     elif integrated < loud_cfg["min_integrated_lufs"]:
-        issues.append(f"통합 음량 {integrated:.1f} LUFS (기준 {loud_cfg['min_integrated_lufs']} LUFS 미만 — 너무 조용함)")
+        issues.append(f"Integrated loudness {integrated:.1f} LUFS (below {loud_cfg['min_integrated_lufs']} LUFS threshold — too quiet)")
         statuses.append(Status.WARN)
     else:
-        issues.append(f"통합 음량 {integrated:.1f} LUFS")
+        issues.append(f"Integrated loudness {integrated:.1f} LUFS")
 
     peak_db = clipping.get("peak_level_db")
     if peak_db is not None and peak_db >= clip_cfg["near_zero_peak_db"]:
-        issues.append(f"클리핑 의심 (peak {peak_db:.2f}dB, 0dBFS 기준 {clip_cfg['near_zero_peak_db']}dB 이상)")
+        issues.append(f"Possible clipping (peak {peak_db:.2f}dB, at/above {clip_cfg['near_zero_peak_db']}dB near 0dBFS)")
         statuses.append(Status.WARN)
     else:
-        issues.append("클리핑 미검출")
+        issues.append("No clipping detected")
 
     details = {
         "integrated_lufs": integrated,
