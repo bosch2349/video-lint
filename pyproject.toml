@@ -3,8 +3,18 @@ name = "video-lint"
 version = "0.1.0"
 description = "숏폼 영상(TikTok/Shorts/Reels) 게시 전 로컬 QA 체크 CLI"
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = []
+classifiers = [
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Utilities",
+]
 
 [project.scripts]
 video-lint = "video_lint.cli:main"
