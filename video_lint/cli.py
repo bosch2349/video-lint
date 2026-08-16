@@ -14,6 +14,7 @@ from .checks import (
     worst_status,
 )
 from .ffprobe import probe_video
+from .report import write_html_report
 from .subtitles import check_safe_zone, load_safe_zones
 
 _PLATFORMS = ["tiktok", "shorts", "reels"]
@@ -50,6 +51,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="사람이 보는 체크리스트 대신 JSON으로 출력 (CI/자동화 파이프라인용)",
+    )
+    parser.add_argument(
+        "--html",
+        metavar="PATH",
+        default=None,
+        help="결과를 사람이 보기 좋은 standalone HTML 파일로 저장 (예: --html report.html)",
     )
     return parser
 
@@ -129,6 +136,11 @@ def main(argv: list[str] | None = None) -> int:
         print(_to_json(args.video, results, overall))
     else:
         _print_human(results)
+
+    if args.html:
+        write_html_report(args.video, results, overall, args.html)
+        # --json 출력(stdout)을 오염시키지 않도록 이 알림도 stderr로 보낸다.
+        print(f"Report written:\n{args.html}", file=sys.stderr)
 
     return 1 if overall == Status.FAIL else 0
 

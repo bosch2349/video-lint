@@ -42,9 +42,16 @@ def test_json_flag_defaults_to_false_and_can_be_enabled():
     assert parser.parse_args(["video.mp4", "--json"]).json is True
 
 
+def test_html_flag_defaults_to_none_and_accepts_a_path():
+    parser = build_parser()
+    assert parser.parse_args(["video.mp4"]).html is None
+    assert parser.parse_args(["video.mp4", "--html", "report.html"]).html == "report.html"
+
+
 if __name__ == "__main__":
     test_json_safe_converts_inf_and_nan_to_null()
     test_json_safe_recurses_into_dict_and_list()
     test_to_json_produces_valid_parseable_json_with_expected_shape()
     test_json_flag_defaults_to_false_and_can_be_enabled()
+    test_html_flag_defaults_to_none_and_accepts_a_path()
     print("모든 테스트 통과")

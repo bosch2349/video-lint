@@ -26,7 +26,7 @@ video-lint --help
 ## 사용법
 
 ```
-video-lint <video.mp4> [--subs subtitle.srt|.ass|.ssa] [--platform tiktok|shorts|reels|all] [--font-size PX] [--json]
+video-lint <video.mp4> [--subs subtitle.srt|.ass|.ssa] [--platform tiktok|shorts|reels|all] [--font-size PX] [--json] [--html PATH]
 ```
 
 - `--subs`: `.ass`/`.ssa`는 MarginL/MarginR/MarginV, `\pos` 태그로 정확한 좌표 판정. `.srt`는 위치 정보가 없어 "하단중앙 렌더링" 가정 + 줄 수/글자 수 기반 추정치로 판정.
@@ -95,6 +95,21 @@ $ video-lint clip.mp4 --platform tiktok --json
 - `checks[].details`: 체크별 구조화된 원시 데이터(코덱/해상도, 블랙프레임 구간, LUFS/클리핑 수치, 정지 구간, safe zone 픽셀값 등). `message`를 정규식으로 긁을 필요 없이 자동화에서 바로 사용하도록 만든 필드입니다.
 - `NaN`/`Infinity`(예: 완전 무음일 때 LUFS가 `-inf`) 값은 표준 JSON이 아니라서 `null`로 치환해서 내보냅니다 — 엄격한 JSON 파서에서도 안전하게 읽힙니다.
 - ffprobe 자체가 실패하는 치명적 오류(파일 없음, ffmpeg 미설치 등)는 `--json`이어도 stdout에 JSON을 만들지 않고 stderr 메시지 + 종료 코드 `1`로만 알립니다. 파이프라인에서는 종료 코드를 먼저 확인하고, 0/1이면 stdout을 JSON으로 파싱하세요.
+
+### `--html` 리포트
+
+사람이 보기 좋은 단일 standalone HTML 파일로 결과를 저장합니다. 외부 서버/프레임워크/CDN 없이 CSS까지 파일 하나에 전부 인라인으로 들어있어서 그냥 브라우저로 열면 됩니다.
+
+```
+$ video-lint input.mp4 --html report.html
+Report written:
+report.html
+```
+
+- 기존 검사 로직·`CheckResult` 구조·`--json` 출력은 전혀 건드리지 않습니다 — `video_lint/report.py`가 `CheckResult` 리스트만 입력받아 HTML 문자열을 만드는 별도 레이어입니다. `--json`과 동시에 써도 됩니다(stdout은 여전히 순수 JSON, HTML은 파일로 저장).
+- `Report written:` 알림은 stdout이 아니라 stderr로 나갑니다 — `--json`과 함께 써도 stdout이 오염되지 않습니다.
+- 리포트 구성: 헤더(파일명/검사 시각/Overall Status) → PASS/WARN/FAIL/SKIP 개수 요약 카드 → 체크별 상태 테이블 → 체크별 `details`를 사람이 읽기 좋은 라벨(예: `covered_seconds` → `Covered Seconds`)로 펼친 상세 영역.
+- 종료 코드는 `--html` 유무와 무관하게 기존과 동일 (FAIL 있으면 `1`).
 
 ### CI 활용 예 (GitHub Actions)
 
