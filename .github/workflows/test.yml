@@ -1,0 +1,39 @@
+name: video-lint tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install video-lint
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      # README "## 테스트" 절과 동일한 방식: mock 테스트 + E2E 테스트를 한 루프로 실행.
+      # E2E(test_e2e.py)는 위에서 설치한 ffmpeg로 fixture 영상을 실제 생성해서 검증한다.
+      - name: Run tests (mock + E2E)
+        run: |
+          for f in tests/test_*.py; do
+            echo "== $f =="
+            PYTHONPATH=. python3 "$f"
+          done

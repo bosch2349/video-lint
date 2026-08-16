@@ -1,5 +1,7 @@
 # video-lint
 
+[![Tests](https://github.com/<owner>/<repo>/actions/workflows/test.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/test.yml)
+
 AI 생성 숏폼 영상(TikTok/YouTube Shorts/Reels)을 게시 전에 검사하는 로컬 QA CLI.
 
 > ⚠️ **safe zone / 판정 임계값 값은 아직 미검증 엔지니어링 추정치**입니다 (`safe_zones.json`/`thresholds.json`, `"verified": false`). CLI 실행 시마다 경고가 출력됩니다. 근거·신뢰도는 [Safe Zone 신뢰도](#safe-zone-신뢰도) 절 참고.
